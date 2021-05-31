@@ -6,6 +6,7 @@ from PIL import ImageGrab
 import cv2 as cv
 import matplotlib.pyplot as plt
 from skimage import color
+from math import pow
 
 b = Bridge('192.168.178.94')
 
@@ -16,7 +17,7 @@ class Lights:
         b.set_group('Woonkamer', 'on', True)
 
     def allLights(self, x, y):
-        b.set_group('Woonkamer', 'xy', [x, y], transitiontime=9)
+        b.set_group('Woonkamer', 'xy', [x, y], transitiontime=5)
 
     def tvLights(self,):
         pass
@@ -44,11 +45,30 @@ class Colors:
 
         img_temp[:, :, 0], img_temp[:, :, 1], img_temp[:, :, 2] = unique[np.argmax(counts)]
 
-        rgb = img_temp[0][0]
-        x,y,z = color.rgb2xyz((rgb / 255 * (2 ** 31 - 1)).astype(np.int32))
+        r,g,b = img_temp[0][0] / 255
 
-        x = x / (x+y+z)
-        y = y / (x+y+z)
+        if r >= 0.04045:
+            r = pow((r + 0.055) / (1.0 + 0.055), 2.4)
+            r = r / 12.92
+        if g >= 0.04045:
+            g = pow((g + 0.055) / (1.0 + 0.055), 2.4)
+            g = g / 12.92
+        if b >= 0.04045:
+            b = pow((b + 0.055) / (1.0 + 0.055), 2.4)
+            b = b / 12.92
+
+        X = r * 0.649926 + g * 0.103455 + b * 0.197109
+        Y = r * 0.234327 + g * 0.743075 + b * 0.022598
+        Z = r * 0.0000000 + g * 0.053077 + b * 1.035763
+
+        for a in [X,Y,Z]:
+            if a <= 0:
+                X = 0.32
+                Y = 0.32
+                Z = 0.32
+
+        x = X / (X + Y + Z)
+        y = Y / (X + Y + Z)
 
         # show_img_compar(img, img_temp)
 
