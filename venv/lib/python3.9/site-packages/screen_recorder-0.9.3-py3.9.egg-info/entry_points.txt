@@ -1,0 +1,3 @@
+[console_scripts]
+screen-recorder = screen_recorder.cli:main
+

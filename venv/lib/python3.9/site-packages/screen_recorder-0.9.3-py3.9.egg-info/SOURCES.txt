@@ -1,0 +1,15 @@
+README.md
+setup.cfg
+setup.py
+screen_recorder/__init__.py
+screen_recorder/cli.py
+screen_recorder/converter.py
+screen_recorder/entities.py
+screen_recorder/handler.py
+screen_recorder/utils.py
+screen_recorder.egg-info/PKG-INFO
+screen_recorder.egg-info/SOURCES.txt
+screen_recorder.egg-info/dependency_links.txt
+screen_recorder.egg-info/entry_points.txt
+screen_recorder.egg-info/requires.txt
+screen_recorder.egg-info/top_level.txt
