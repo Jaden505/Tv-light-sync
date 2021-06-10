@@ -1,16 +1,40 @@
 from phue import Bridge
 import numpy as np
-from threading import Thread
-import time
 from PIL import ImageGrab
 import cv2 as cv
 import matplotlib.pyplot as plt
-from skimage import color
 from math import pow
+import webbrowser
+import socket
+import discoverhue
+import re
 
-b = Bridge('192.168.178.94')
+def getBridgeIP():
+    found = discoverhue.find_bridges()
+    for bridge in found:
+        bridge_ip = (re.search(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}', found[bridge]).group())
+    return bridge_ip
+
+b = Bridge(getBridgeIP())
 
 b.connect()
+
+class Stream:
+    def get_ip(self,):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            # doesn't even have to be reachable
+            s.connect(('10.255.255.255', 1))
+            IP = s.getsockname()[0]
+        except Exception:
+            IP = '127.0.0.1'
+        finally:
+            s.close()
+        return IP
+
+    def openStream(self,):
+        url = f'http://{self.get_ip()}:8000'
+        webbrowser.open(url)
 
 class Lights:
     def __init__(self):
@@ -18,9 +42,6 @@ class Lights:
 
     def allLights(self, x, y):
         b.set_group('Woonkamer', 'xy', [x, y], transitiontime=5)
-
-    def tvLights(self,):
-        pass
 
 class Colors:
     def show_img_compar(self, img_1, img_2):
@@ -74,11 +95,15 @@ class Colors:
 
         return x, y
 
-l = Lights()
-c = Colors()
+if __name__ == "__main__":
+    c = Colors()
+    l = Lights()
+    s = Stream()
 
-while True:
-    c.getImg()
-    x,y = c.getColor()
+    s.openStream()
 
-    l.allLights(x,y)
+    while True:
+        c.getImg()
+        x,y = c.getColor()
+
+        l.allLights(x,y)
