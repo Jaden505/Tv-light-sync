@@ -8,6 +8,7 @@ import webbrowser
 import socket
 import discoverhue
 import re
+import Raspi_Cam_stream as RaspCam
 
 def getBridgeIP():
     found = discoverhue.find_bridges()
@@ -20,6 +21,9 @@ b = Bridge(getBridgeIP())
 b.connect()
 
 class Stream:
+    def startStream(self,):
+        RaspCam.startStream()
+
     def get_ip(self,):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
