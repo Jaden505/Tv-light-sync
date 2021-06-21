@@ -8,7 +8,7 @@ import webbrowser
 import socket
 import discoverhue
 import re
-import Raspi_Cam_stream as RaspCam
+import importlib
 
 def getBridgeIP():
     found = discoverhue.find_bridges()
@@ -17,6 +17,8 @@ def getBridgeIP():
     return bridge_ip
 
 b = Bridge(getBridgeIP())
+
+# print(b)
 
 b.connect()
 
@@ -64,13 +66,24 @@ class Colors:
         img = cv.resize(img, (500, 300), interpolation=cv.INTER_AREA)
         self.img = cv.cvtColor(img, cv.COLOR_RGB2BGR)
 
-    def getColor(self,):
+    def getColors(self,):
         img_temp = self.img.copy()
+        img_temp2 = self.img.copy()
+
         unique, counts = np.unique(img_temp.reshape(-1, 3), axis=0, return_counts=True)
+        unique2, counts2 = np.unique(img_temp2.reshape(-1, 3), axis=0, return_counts=True)
 
-        img_temp[:, :, 0], img_temp[:, :, 1], img_temp[:, :, 2] = unique[np.argmax(counts)]
+        sorted = np.argsort(counts)
+        sorted2 = np.argsort(counts2)
 
-        r,g,b = img_temp[0][0] / 255
+        img_temp[:, :, 0], img_temp[:, :, 1], img_temp[:, :, 2] = unique[sorted[-1]]
+        img_temp2[:, :, 0], img_temp2[:, :, 1], img_temp2[:, :, 2] = unique2[sorted2[-2]]
+
+        # self.img = (np.average(np.arange(img_temp, img_temp2)))
+        self.img = np.mean(np.array([img_temp, img_temp2]), axis=0)
+
+    def translateColors(self):
+        r, g, b = self.img[0][0] / 255
 
         if r >= 0.04045:
             r = pow((r + 0.055) / (1.0 + 0.055), 2.4)
@@ -86,11 +99,12 @@ class Colors:
         Y = r * 0.234327 + g * 0.743075 + b * 0.022598
         Z = r * 0.0000000 + g * 0.053077 + b * 1.035763
 
-        for a in [X,Y,Z]:
-            if a <= 0:
-                X = 0.32
-                Y = 0.32
-                Z = 0.32
+        if X <= 0:
+            X = 0.32
+        if Y <= 0:
+            Y = 0.32
+        if Z <= 0:
+            Z = 0.32
 
         x = X / (X + Y + Z)
         y = Y / (X + Y + Z)
@@ -99,15 +113,17 @@ class Colors:
 
         return x, y
 
+
 if __name__ == "__main__":
     c = Colors()
     l = Lights()
     s = Stream()
 
-    s.openStream()
+    # s.openStream()
 
     while True:
         c.getImg()
-        x,y = c.getColor()
+        c.getColors()
+        x,y = c.translateColors()
 
         l.allLights(x,y)
