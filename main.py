@@ -2,13 +2,17 @@ from phue import Bridge
 import numpy as np
 from PIL import ImageGrab
 import cv2 as cv
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from math import pow
-import webbrowser
+# import webbrowser
 import socket
 import discoverhue
 import re
 import importlib
+from selenium import webdriver
+from threading import Thread
+
+r = importlib.import_module('Raspi_Cam_stream')
 
 def getBridgeIP():
     found = discoverhue.find_bridges()
@@ -18,13 +22,11 @@ def getBridgeIP():
 
 b = Bridge(getBridgeIP())
 
-# print(b)
-
 b.connect()
 
 class Stream:
     def startStream(self,):
-        RaspCam.startStream()
+        r.startStream()
 
     def get_ip(self,):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -40,7 +42,10 @@ class Stream:
 
     def openStream(self,):
         url = f'http://{self.get_ip()}:8000'
-        webbrowser.open(url)
+
+        driver = webdriver.Chrome()
+        driver.get(url)
+        driver.maximize_window()
 
 class Lights:
     def __init__(self):
@@ -109,17 +114,15 @@ class Colors:
         x = X / (X + Y + Z)
         y = Y / (X + Y + Z)
 
-        # show_img_compar(img, img_temp)
-
         return x, y
-
 
 if __name__ == "__main__":
     c = Colors()
     l = Lights()
     s = Stream()
 
-    # s.openStream()
+    Thread(target=s.startStream)
+    Thread(target=s.openStream)
 
     while True:
         c.getImg()
